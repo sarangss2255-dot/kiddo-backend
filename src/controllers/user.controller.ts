@@ -8,6 +8,10 @@ import { ROLES } from '../constants/roles.js';
 import { Activity } from '../models/activity.model.js';
 import * as authService from '../services/auth.service.js';
 
+function getParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value ?? '';
+}
+
 export const listFamilyUsers = asyncHandler(async (req: Request, res: Response) => {
   const users = await User.find({ familyId: req.user!.familyId })
     .select('-passwordHash')
@@ -76,7 +80,7 @@ export const registerNotificationToken = asyncHandler(async (req: Request, res: 
 
 export const updateChild = asyncHandler(async (req: Request, res: Response) => {
   const child = await User.findOne({
-    _id: req.params.userId,
+    _id: getParam(req.params.userId),
     familyId: req.user!.familyId,
     role: ROLES.CHILD,
   });
@@ -126,6 +130,6 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const regenerateChildCode = asyncHandler(async (req: Request, res: Response) => {
-  const child = await authService.regenerateChildCode(req.params.userId, req.user!.familyId!);
+  const child = await authService.regenerateChildCode(getParam(req.params.userId), req.user!.familyId!);
   res.status(StatusCodes.OK).json(child.toObject());
 });

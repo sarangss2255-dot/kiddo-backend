@@ -3,6 +3,10 @@ import { StatusCodes } from 'http-status-codes';
 import { asyncHandler } from '../utils/async-handler.js';
 import * as taskService from '../services/task.service.js';
 
+function getParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value ?? '';
+}
+
 export const listTasks = asyncHandler(async (req: Request, res: Response) => {
   const tasks = await taskService.listTasks(req.user!.familyId!, req.user!.id, req.user!.role);
   res.status(StatusCodes.OK).json(tasks);
@@ -15,7 +19,7 @@ export const createTask = asyncHandler(async (req: Request, res: Response) => {
 
 export const updateTask = asyncHandler(async (req: Request, res: Response) => {
   const task = await taskService.updateTask(
-    req.params.taskId,
+    getParam(req.params.taskId),
     req.user!.familyId!,
     req.body,
     req.user!.role,
@@ -25,6 +29,6 @@ export const updateTask = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const deleteTask = asyncHandler(async (req: Request, res: Response) => {
-  await taskService.deleteTask(req.params.taskId, req.user!.familyId!, req.user!.role, req.user!.id);
+  await taskService.deleteTask(getParam(req.params.taskId), req.user!.familyId!, req.user!.role, req.user!.id);
   res.status(StatusCodes.OK).json({ success: true });
 });
