@@ -6,8 +6,16 @@ export const parentRegisterSchema = z.object({
     firstName: z.string().min(2),
     lastName: z.string().optional(),
     familyName: z.string().min(2),
-    email: z.string().email(),
-    password: z.string().min(8),
+    email: z.string().email().optional(),
+    password: z.string().min(8).optional(),
+    idToken: z.string().min(20).optional(),
+  }).superRefine((body, ctx) => {
+    if (!body.idToken && (!body.email || !body.password)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Either idToken or email/password is required',
+      });
+    }
   }),
 });
 
@@ -36,5 +44,14 @@ export const childCodeLoginSchema = z.object({
 export const googleMobileLoginSchema = z.object({
   body: z.object({
     idToken: z.string().min(20),
+  }),
+});
+
+export const firebaseAuthSchema = z.object({
+  body: z.object({
+    idToken: z.string().min(20),
+    familyName: z.string().min(2).optional(),
+    firstName: z.string().min(2).optional(),
+    lastName: z.string().optional(),
   }),
 });

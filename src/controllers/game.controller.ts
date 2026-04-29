@@ -22,3 +22,8 @@ export const claimPatternReward = asyncHandler(async (req: Request, res: Respons
   const result = await rewardExtraGameWin(req.user!.id, req.user!.familyId, 'pattern', req.body?.score, req.body?.moves);
   res.status(StatusCodes.OK).json(result);
 });
+
+export const claimPuzzleReward = asyncHandler(async (req: Request, res: Response) => {
+  const result = await rewardExtraGameWin(req.user!.id, req.user!.familyId, 'puzzle', req.body?.score, req.body?.moves);
+  res.status(StatusCodes.OK).json(result);
+});

@@ -795,6 +795,17 @@ export const swaggerSpec = swaggerJSDoc({
           },
         },
       },
+      '/games/puzzle/reward': {
+        post: {
+          tags: ['Games'],
+          summary: 'Claim jigsaw puzzle game reward',
+          responses: {
+            '200': {
+              description: 'Reward claimed',
+            },
+          },
+        },
+      },
       '/activity': {
         get: {
           tags: ['Activity'],

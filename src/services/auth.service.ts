@@ -13,10 +13,20 @@ export async function registerParent(input: {
   firstName: string;
   lastName?: string;
   familyName: string;
-  email: string;
-  password: string;
+  email?: string;
+  password?: string;
+  idToken?: string;
 }) {
-  const existingUser = await User.findOne({ email: input.email.toLowerCase() });
+  if (input.idToken) {
+    return registerParentWithFirebase(input);
+  }
+
+  const normalizedEmail = input.email?.toLowerCase();
+  if (!normalizedEmail || !input.password) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Email and password are required');
+  }
+
+  const existingUser = await User.findOne({ email: normalizedEmail });
   if (existingUser) {
     throw new ApiError(StatusCodes.CONFLICT, 'Email already in use');
   }
@@ -30,7 +40,7 @@ export async function registerParent(input: {
   const user = await User.create({
     familyId: family._id,
     role: ROLES.PARENT,
-    email: input.email.toLowerCase(),
+    email: normalizedEmail,
     passwordHash,
     firstName: input.firstName,
     lastName: input.lastName ?? '',
@@ -127,23 +137,40 @@ export async function regenerateChildCode(userId: string, familyId: string) {
 }
 
 export async function googleMobileLogin(idToken: string) {
-  const decoded = await firebaseAuth.verifyIdToken(idToken);
+  return firebaseLogin({ idToken, autoCreate: true });
+}
+
+export async function firebaseLogin(input: {
+  idToken: string;
+  familyName?: string;
+  firstName?: string;
+  lastName?: string;
+  autoCreate?: boolean;
+}) {
+  const decoded = await firebaseAuth.verifyIdToken(input.idToken);
   if (!decoded.email) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Google account email is required');
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Firebase account email is required');
   }
 
   const email = decoded.email.toLowerCase();
-  let user = await User.findOne({ email });
+  const firebaseUid = decoded.uid;
+  let user = await User.findOne({
+    $or: [{ firebaseUid }, { email }],
+  });
 
   if (user && user.role !== ROLES.PARENT) {
-    throw new ApiError(StatusCodes.FORBIDDEN, 'Google login is only available for parent accounts');
+    throw new ApiError(StatusCodes.FORBIDDEN, 'Firebase login is only available for parent accounts');
   }
 
   if (!user) {
-    const displayName = decoded.name?.trim() || 'Parent';
-    const [firstName, ...rest] = displayName.split(' ');
+    if (!input.autoCreate && !input.familyName) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'No parent account found for this Firebase user');
+    }
+
+    const displayName = decoded.name?.trim() || [input.firstName, input.lastName].filter(Boolean).join(' ').trim() || 'Parent';
+    const [derivedFirstName, ...rest] = displayName.split(' ');
     const family = await Family.create({
-      name: `${firstName}'s Family`,
+      name: input.familyName?.trim() || `${derivedFirstName}'s Family`,
       inviteCode: nanoid(8).toUpperCase(),
     });
 
@@ -151,12 +178,63 @@ export async function googleMobileLogin(idToken: string) {
       familyId: family._id,
       role: ROLES.PARENT,
       email,
-      firstName,
-      lastName: rest.join(' '),
+      firebaseUid,
+      firstName: input.firstName?.trim() || derivedFirstName,
+      lastName: input.lastName?.trim() || rest.join(' '),
     });
+  } else if (!user.firebaseUid) {
+    user.firebaseUid = firebaseUid;
+    await user.save();
   }
 
   return buildAuthPayload(user.id, ROLES.PARENT, user.familyId ? String(user.familyId) : undefined, user);
+}
+
+async function registerParentWithFirebase(input: {
+  firstName: string;
+  lastName?: string;
+  familyName: string;
+  email?: string;
+  password?: string;
+  idToken?: string;
+}) {
+  const idToken = input.idToken;
+  if (!idToken) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Firebase idToken is required');
+  }
+
+  const decoded = await firebaseAuth.verifyIdToken(idToken);
+  if (!decoded.email) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Firebase account email is required');
+  }
+
+  const email = decoded.email.toLowerCase();
+  if (input.email && input.email.toLowerCase() !== email) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Email does not match the Firebase account');
+  }
+
+  const existingUser = await User.findOne({
+    $or: [{ firebaseUid: decoded.uid }, { email }],
+  });
+  if (existingUser) {
+    throw new ApiError(StatusCodes.CONFLICT, 'Email already in use');
+  }
+
+  const family = await Family.create({
+    name: input.familyName,
+    inviteCode: nanoid(8).toUpperCase(),
+  });
+
+  const user = await User.create({
+    familyId: family._id,
+    role: ROLES.PARENT,
+    email,
+    firebaseUid: decoded.uid,
+    firstName: input.firstName,
+    lastName: input.lastName ?? '',
+  });
+
+  return buildAuthPayload(user.id, ROLES.PARENT, String(family._id), user);
 }
 
 async function generateChildLoginCode() {
@@ -175,6 +253,7 @@ function buildAuthPayload(userId: string, role: Role, familyId: string | undefin
   firstName: string;
   lastName?: string;
   email?: string | null;
+  firebaseUid?: string | null;
   username?: string | null;
   childLoginCode?: string | null;
   avatar?: string | null;

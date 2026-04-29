@@ -8,6 +8,7 @@ const CHESS_REWARD_COOLDOWN_MS = 1000 * 60 * 60 * 6;
 const MEMORY_REWARD_POINTS = 10;
 const MATH_REWARD_POINTS = 12;
 const PATTERN_REWARD_POINTS = 11;
+const PUZZLE_REWARD_POINTS = 9;
 const EXTRA_GAME_COOLDOWN_MS = 1000 * 60 * 60 * 3;
 
 export async function rewardChessWin(userId: string, familyId: string | undefined, moves?: number) {
@@ -50,13 +51,13 @@ export async function rewardChessWin(userId: string, familyId: string | undefine
   };
 }
 
-type ExtraGameType = 'memory' | 'math' | 'pattern';
+type ExtraGameType = 'memory' | 'math' | 'pattern' | 'puzzle';
 
 const extraGameConfig: Record<ExtraGameType, {
   points: number;
-  winsKey: 'memoryWins' | 'mathWins' | 'patternWins';
-  playedKey: 'memoryGamesPlayed' | 'mathGamesPlayed' | 'patternGamesPlayed';
-  cooldownKey: 'lastMemoryRewardAt' | 'lastMathRewardAt' | 'lastPatternRewardAt';
+  winsKey: 'memoryWins' | 'mathWins' | 'patternWins' | 'puzzleWins';
+  playedKey: 'memoryGamesPlayed' | 'mathGamesPlayed' | 'patternGamesPlayed' | 'puzzleGamesPlayed';
+  cooldownKey: 'lastMemoryRewardAt' | 'lastMathRewardAt' | 'lastPatternRewardAt' | 'lastPuzzleRewardAt';
   label: string;
 }> = {
   memory: {
@@ -79,6 +80,13 @@ const extraGameConfig: Record<ExtraGameType, {
     playedKey: 'patternGamesPlayed',
     cooldownKey: 'lastPatternRewardAt',
     label: 'Pattern Tap',
+  },
+  puzzle: {
+    points: PUZZLE_REWARD_POINTS,
+    winsKey: 'puzzleWins',
+    playedKey: 'puzzleGamesPlayed',
+    cooldownKey: 'lastPuzzleRewardAt',
+    label: 'Jigsaw Puzzle',
   },
 };
 

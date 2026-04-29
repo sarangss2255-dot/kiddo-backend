@@ -32,3 +32,8 @@ export const googleMobileLogin = asyncHandler(async (req: Request, res: Response
   const payload = await authService.googleMobileLogin(req.body.idToken);
   res.status(StatusCodes.OK).json(payload);
 });
+
+export const firebaseLogin = asyncHandler(async (req: Request, res: Response) => {
+  const payload = await authService.firebaseLogin(req.body);
+  res.status(StatusCodes.OK).json(payload);
+});
