@@ -13,6 +13,7 @@ const userSchema = new Schema(
     childLoginCode: { type: String, trim: true, uppercase: true, sparse: true, unique: true },
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, trim: true, default: '' },
+    standard: { type: Number, min: 1, max: 12, default: 1 },
     avatar: { type: String, default: 'rocket-kid' },
     points: { type: Number, default: 0 },
     streak: { type: Number, default: 0 },

@@ -83,6 +83,7 @@ export async function createChild(parentId: string, familyId: string, input: {
   firstName: string;
   lastName?: string;
   avatar?: string;
+  standard: number;
 }) {
   const childLoginCode = await generateChildLoginCode();
   const child = await User.create({
@@ -91,6 +92,7 @@ export async function createChild(parentId: string, familyId: string, input: {
     role: ROLES.CHILD,
     firstName: input.firstName,
     lastName: input.lastName ?? '',
+    standard: input.standard,
     avatar: input.avatar ?? 'space-ranger',
     childLoginCode,
   });
@@ -257,6 +259,7 @@ function buildAuthPayload(userId: string, role: Role, familyId: string | undefin
   username?: string | null;
   childLoginCode?: string | null;
   avatar?: string | null;
+  standard?: number | null;
   points?: number;
   streak?: number;
   chessWins?: number;
@@ -294,6 +297,7 @@ function buildAuthPayload(userId: string, role: Role, familyId: string | undefin
       username: user.username ?? undefined,
       childLoginCode: user.childLoginCode ?? undefined,
       avatar: user.avatar ?? undefined,
+      standard: user.standard ?? 1,
       points: user.points ?? 0,
       streak: user.streak ?? 0,
       chessWins: user.chessWins ?? 0,

@@ -94,6 +94,9 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
   const username = typeof req.body?.username === 'string' ? req.body.username.trim().toLowerCase() : undefined;
   const avatar = typeof req.body?.avatar === 'string' ? req.body.avatar.trim() : undefined;
   const isActive = typeof req.body?.isActive === 'boolean' ? req.body.isActive : undefined;
+  const standard = typeof req.body?.standard === 'number' && Number.isInteger(req.body.standard)
+    ? req.body.standard
+    : undefined;
 
   if (firstName != null && firstName.length > 0) {
     child.firstName = firstName;
@@ -109,6 +112,10 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
 
   if (avatar != null && avatar.length > 0) {
     child.avatar = avatar;
+  }
+
+  if (standard != null && standard >= 1 && standard <= 12) {
+    child.standard = standard;
   }
 
   if (isActive != null) {

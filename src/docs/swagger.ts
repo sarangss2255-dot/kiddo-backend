@@ -57,6 +57,7 @@ export const swaggerSpec = swaggerJSDoc({
             username: { type: 'string', nullable: true },
             childLoginCode: { type: 'string', nullable: true },
             avatar: { type: 'string', nullable: true },
+            standard: { type: 'number' },
             points: { type: 'number' },
             streak: { type: 'number' },
             chessWins: { type: 'number' },
@@ -117,11 +118,12 @@ export const swaggerSpec = swaggerJSDoc({
         },
         CreateChildRequest: {
           type: 'object',
-          required: ['firstName'],
+          required: ['firstName', 'standard'],
           properties: {
             firstName: { type: 'string' },
             lastName: { type: 'string' },
             avatar: { type: 'string' },
+            standard: { type: 'number', minimum: 1, maximum: 12 },
           },
         },
         Task: {
@@ -217,6 +219,7 @@ export const swaggerSpec = swaggerJSDoc({
             lastName: { type: 'string' },
             username: { type: 'string' },
             avatar: { type: 'string' },
+            standard: { type: 'number', minimum: 1, maximum: 12 },
             isActive: { type: 'boolean' },
           },
         },
