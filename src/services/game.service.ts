@@ -3,7 +3,8 @@ import { Activity } from '../models/activity.model.js';
 import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/api-error.js';
 
-const CHESS_REWARD_POINTS = 15;
+const CHESS_WIN_POINTS = 10;
+const CHESS_DRAW_POINTS = 5;
 const CHESS_REWARD_COOLDOWN_MS = 1000 * 60 * 60 * 6;
 const MEMORY_REWARD_POINTS = 10;
 const MATH_REWARD_POINTS = 12;
@@ -11,7 +12,7 @@ const PATTERN_REWARD_POINTS = 11;
 const PUZZLE_REWARD_POINTS = 9;
 const EXTRA_GAME_COOLDOWN_MS = 1000 * 60 * 60 * 3;
 
-export async function rewardChessWin(userId: string, familyId: string | undefined, moves?: number) {
+export async function rewardChessWin(userId: string, familyId: string | undefined, moves?: number, result: 'win' | 'draw' = 'win') {
   const user = await User.findOne({ _id: userId, familyId, role: 'child' });
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Child user not found');
@@ -22,10 +23,14 @@ export async function rewardChessWin(userId: string, familyId: string | undefine
   const cooldownActive = lastRewardAt > 0 && now.getTime() - lastRewardAt < CHESS_REWARD_COOLDOWN_MS;
 
   user.chessGamesPlayed = (user.chessGamesPlayed ?? 0) + 1;
-  user.chessWins = (user.chessWins ?? 0) + 1;
+  if (result === 'win') {
+    user.chessWins = (user.chessWins ?? 0) + 1;
+  }
+
+  const pointsToAdd = result === 'win' ? CHESS_WIN_POINTS : CHESS_DRAW_POINTS;
 
   if (!cooldownActive) {
-    user.points = (user.points ?? 0) + CHESS_REWARD_POINTS;
+    user.points = (user.points ?? 0) + pointsToAdd;
     user.lastChessRewardAt = now;
   }
 
@@ -34,16 +39,17 @@ export async function rewardChessWin(userId: string, familyId: string | undefine
     familyId,
     actorId: userId,
     type: 'game_reward_claimed',
-    message: `${user.firstName} logged a chess win`,
-    metadata: { game: 'chess', awarded: !cooldownActive, pointsAwarded: cooldownActive ? 0 : CHESS_REWARD_POINTS },
+    message: `${user.firstName} logged a chess ${result}`,
+    metadata: { game: 'chess', result, awarded: !cooldownActive, pointsAwarded: cooldownActive ? 0 : pointsToAdd },
   });
 
   return {
     awarded: !cooldownActive,
-    pointsAwarded: cooldownActive ? 0 : CHESS_REWARD_POINTS,
+    pointsAwarded: cooldownActive ? 0 : pointsToAdd,
     totalPoints: user.points,
     cooldownEndsAt: cooldownActive ? new Date(lastRewardAt + CHESS_REWARD_COOLDOWN_MS).toISOString() : null,
     moves: typeof moves === 'number' ? moves : null,
+    result,
     stats: {
       chessWins: user.chessWins,
       chessGamesPlayed: user.chessGamesPlayed,

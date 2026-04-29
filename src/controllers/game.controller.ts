@@ -4,7 +4,7 @@ import { asyncHandler } from '../utils/async-handler.js';
 import { rewardChessWin, rewardExtraGameWin } from '../services/game.service.js';
 
 export const claimChessReward = asyncHandler(async (req: Request, res: Response) => {
-  const result = await rewardChessWin(req.user!.id, req.user!.familyId, req.body?.moves);
+  const result = await rewardChessWin(req.user!.id, req.user!.familyId, req.body?.moves, req.body?.result);
   res.status(StatusCodes.OK).json(result);
 });
 
