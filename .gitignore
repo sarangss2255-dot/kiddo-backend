@@ -1,0 +1,5 @@
+node_modules/
+.env
+firebase_service_account_env.txt
+dist/
+coverage/
