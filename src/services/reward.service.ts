@@ -115,6 +115,18 @@ export async function redeemReward(rewardId: string, userId: string, familyId: s
   }
 
   user.points -= reward.pointsCost;
+  
+  if (!user.obtainedRewards) {
+    (user as any).obtainedRewards = [];
+  }
+  
+  (user as any).obtainedRewards.push({
+    rewardId: reward._id,
+    title: reward.title,
+    redeemedAt: new Date(),
+    pointsSpent: reward.pointsCost,
+  });
+
   await user.save();
 
   await Activity.create({

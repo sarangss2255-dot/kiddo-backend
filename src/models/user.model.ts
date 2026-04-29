@@ -35,6 +35,13 @@ const userSchema = new Schema(
     lastCompletedAt: { type: Date },
     notificationToken: { type: String },
     isActive: { type: Boolean, default: true },
+    gender: { type: String, enum: ['male', 'female', 'other'], default: 'male' },
+    obtainedRewards: [{
+      rewardId: { type: Schema.Types.ObjectId, ref: 'Reward' },
+      title: String,
+      redeemedAt: { type: Date, default: Date.now },
+      pointsSpent: Number,
+    }],
   },
   { timestamps: true },
 );
