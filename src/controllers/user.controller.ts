@@ -27,25 +27,38 @@ export const listAllUsers = asyncHandler(async (_req: Request, res: Response) =>
 });
 
 export const updateMe = asyncHandler(async (req: Request, res: Response) => {
-  const avatar = typeof req.body?.avatar === 'string' ? req.body.avatar.trim() : undefined;
-  const notificationToken = typeof req.body?.notificationToken === 'string'
-    ? req.body.notificationToken.trim()
-    : undefined;
-  if (!avatar && !notificationToken) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Avatar or notification token is required');
+  const update: Record<string, any> = {};
+
+  if (typeof req.body?.firstName === 'string' && req.body.firstName.trim().length > 0) {
+    update.firstName = req.body.firstName.trim();
+  }
+  if (typeof req.body?.lastName === 'string') {
+    update.lastName = req.body.lastName.trim();
+  }
+  if (typeof req.body?.avatar === 'string' && req.body.avatar.trim().length > 0) {
+    update.avatar = req.body.avatar.trim();
+  }
+  if (typeof req.body?.notificationToken === 'string' && req.body.notificationToken.trim().length > 0) {
+    update.notificationToken = req.body.notificationToken.trim();
+  }
+  if (typeof req.body?.gender === 'string' && ['male', 'female', 'other'].includes(req.body.gender)) {
+    update.gender = req.body.gender;
+  }
+  if (typeof req.body?.settings === 'object' && req.body.settings !== null) {
+    // Nested update for settings
+    const settings = req.body.settings;
+    for (const key in settings) {
+      update[`settings.${key}`] = settings[key];
+    }
   }
 
-  const update: Record<string, string> = {};
-  if (avatar && avatar.length > 0) {
-    update.avatar = avatar;
-  }
-  if (notificationToken && notificationToken.length > 0) {
-    update.notificationToken = notificationToken;
+  if (Object.keys(update).length === 0) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'No update fields provided');
   }
 
   const user = await User.findByIdAndUpdate(
     req.user!.id,
-    update,
+    { $set: update },
     { new: true },
   ).select('-passwordHash').lean();
 
@@ -136,7 +149,46 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json(updatedChild);
 });
 
-export const regenerateChildCode = asyncHandler(async (req: Request, res: Response) => {
-  const child = await authService.regenerateChildCode(getParam(req.params.userId), req.user!.familyId!);
-  res.status(StatusCodes.OK).json(child.toObject());
+export const claimScroll = asyncHandler(async (req: Request, res: Response) => {
+  const user = await User.findById(req.user!.id);
+  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+
+  const now = new Date();
+  const lastScroll = user.lastScrollAt;
+  if (lastScroll && lastScroll.toDateString() === now.toDateString()) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'You have already read your magic scroll today!');
+  }
+
+  user.points += 20;
+  user.xp += 100;
+  user.lastScrollAt = now;
+  await user.save();
+
+  await Activity.create({
+    familyId: req.user!.familyId,
+    actorId: req.user!.id,
+    type: 'game_reward_claimed',
+    message: 'Unlocked the Daily Magic Scroll! ✨ (+20 pts, +100 XP)',
+  });
+
+  res.status(StatusCodes.OK).json(user);
+});
+
+export const logBrainBreak = asyncHandler(async (req: Request, res: Response) => {
+  const user = await User.findById(req.user!.id);
+  if (!user) throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+
+  // Award skill XP (Kindness for mindfulness)
+  user.skillXP.kindness += 20;
+  user.xp += 20;
+  await user.save();
+
+  await Activity.create({
+    familyId: req.user!.familyId,
+    actorId: req.user!.id,
+    type: 'game_reward_claimed',
+    message: 'Completed a Brain Break mindfulness exercise! 🧘‍♂️ (+20 Kindness XP)',
+  });
+
+  res.status(StatusCodes.OK).json(user);
 });

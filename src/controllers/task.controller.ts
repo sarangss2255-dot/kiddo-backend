@@ -32,3 +32,8 @@ export const deleteTask = asyncHandler(async (req: Request, res: Response) => {
   await taskService.deleteTask(getParam(req.params.taskId), req.user!.familyId!, req.user!.role, req.user!.id);
   res.status(StatusCodes.OK).json({ success: true });
 });
+
+export const seedStockTasks = asyncHandler(async (req: Request, res: Response) => {
+  const tasks = await taskService.seedStockTasks(req.user!.familyId!, req.user!.id);
+  res.status(StatusCodes.CREATED).json(tasks);
+});

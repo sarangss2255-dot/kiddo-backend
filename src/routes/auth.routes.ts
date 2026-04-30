@@ -21,4 +21,6 @@ router.post(
   authController.createChild,
 );
 
+router.post('/change-password', authenticate, authController.changePassword);
+
 export default router;

@@ -37,3 +37,9 @@ export const firebaseLogin = asyncHandler(async (req: Request, res: Response) =>
   const payload = await authService.firebaseLogin(req.body);
   res.status(StatusCodes.OK).json(payload);
 });
+
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+  await authService.changePassword(req.user!.id, currentPassword, newPassword);
+  res.status(StatusCodes.OK).json({ success: true, message: 'Password changed successfully' });
+});

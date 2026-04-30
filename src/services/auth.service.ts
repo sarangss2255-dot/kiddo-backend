@@ -142,6 +142,26 @@ export async function googleMobileLogin(idToken: string) {
   return firebaseLogin({ idToken, autoCreate: true });
 }
 
+export async function changePassword(userId: string, currentPass: string, newPass: string) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+
+  if (!user.passwordHash) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Password change is not available for social login accounts');
+  }
+
+  const isValid = await bcrypt.compare(currentPass, user.passwordHash);
+  if (!isValid) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid current password');
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  user.passwordHash = await bcrypt.hash(newPass, salt);
+  await user.save();
+}
+
 export async function firebaseLogin(input: {
   idToken: string;
   familyName?: string;

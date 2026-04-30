@@ -79,12 +79,39 @@ export async function updateTask(
 
   if (input.status === 'approved') {
     task.approvedAt = new Date();
-    await User.findByIdAndUpdate(task.assignedTo, { $inc: { points: task.points } });
+    const xpGain = task.points * 10;
+    
+    const user = await User.findById(task.assignedTo);
+    if (user) {
+      user.points += task.points;
+      user.xp += xpGain;
+      
+      // Update Skill Trees
+      const tag = (task.skillTag || '').toLowerCase();
+      const cat = (task.category || '').toLowerCase();
+      
+      if (['academic', 'learning', 'self-learning', 'organization', 'planning', 'intelligence'].some((k) => tag.includes(k) || cat.includes(k))) {
+        user.skillXP.intelligence += xpGain;
+      } else if (['chores', 'fitness', 'responsibility', 'independence', 'self-reliance', 'self-care', 'strength'].some((k) => tag.includes(k) || cat.includes(k))) {
+        user.skillXP.strength += xpGain;
+      } else {
+        user.skillXP.kindness += xpGain;
+      }
+      
+      // Level up check: level * level * 100
+      const xpNeeded = user.level * user.level * 100;
+      if (user.xp >= xpNeeded) {
+        user.level += 1;
+        // Optional: Trigger level up event/notification
+      }
+      await user.save();
+    }
+
     await Activity.create({
       familyId,
-      actorId,
+      actorId: actorId,
       type: 'task_approved',
-      message: `Approved task "${task.title}"`,
+      message: `Approved task "${task.title}" (+${task.points} pts, +${xpGain} XP)`,
       metadata: { taskId: task.id },
     });
   }
@@ -116,6 +143,71 @@ export async function deleteTask(taskId: string, familyId: string, actorRole: st
   });
 
   return { success: true };
+}
+
+export async function seedStockTasks(familyId: string, createdBy: string) {
+  // Delete existing tasks for this family
+  await Task.deleteMany({ familyId });
+
+  // Get all active children in the family
+  const children = await User.find({ familyId, role: 'child', isActive: true });
+  if (children.length === 0) return [];
+
+  const stockTasks = [
+    { title: "Wake up on time", category: "Morning", points: 10, skillTag: "Discipline", requiresPhoto: false },
+    { title: "Silent Prayer", category: "Morning", points: 5, skillTag: "Mindfulness", requiresPhoto: false },
+    { title: "Smile in the mirror", category: "Morning", points: 5, skillTag: "Self-confidence", requiresPhoto: false },
+    { title: "Make your bed", category: "Morning", points: 15, skillTag: "Responsibility", requiresPhoto: true },
+    { title: "Wear uniform neatly", category: "Morning", points: 10, skillTag: "Self-care", requiresPhoto: true },
+    { title: "Personal hygiene", category: "Morning", points: 10, skillTag: "Hygiene", requiresPhoto: false },
+    { title: "Drink water", category: "Morning", points: 5, skillTag: "Health", requiresPhoto: false },
+    { title: "Exercise (10-20 min)", category: "Morning", points: 20, skillTag: "Fitness", requiresPhoto: false },
+    { title: "Prepare school bag", category: "Morning", points: 10, skillTag: "Organization", requiresPhoto: true },
+    { title: "Greet teachers", category: "School", points: 10, skillTag: "Respect", requiresPhoto: false },
+    { title: "Maintain discipline", category: "School", points: 10, skillTag: "Discipline", requiresPhoto: false },
+    { title: "Help classmates", category: "School", points: 15, skillTag: "Empathy", requiresPhoto: false },
+    { title: "No arguing", category: "School", points: 15, skillTag: "Emotional control", requiresPhoto: false },
+    { title: "Keep classroom clean", category: "School", points: 15, skillTag: "Responsibility", requiresPhoto: false },
+    { title: "Participate in class", category: "School", points: 15, skillTag: "Confidence", requiresPhoto: false },
+    { title: "Wash hands", category: "After School", points: 10, skillTag: "Hygiene", requiresPhoto: false },
+    { title: "Fold uniform", category: "After School", points: 15, skillTag: "Responsibility", requiresPhoto: true },
+    { title: "Help parents", category: "After School", points: 20, skillTag: "Responsibility", requiresPhoto: false },
+    { title: "Revise lessons", category: "After School", points: 20, skillTag: "Learning", requiresPhoto: false },
+    { title: "Organize desk", category: "After School", points: 15, skillTag: "Organization", requiresPhoto: true },
+    { title: "Complete homework", category: "After School", points: 30, skillTag: "Self-learning", requiresPhoto: true },
+    { title: "Read for 20 mins", category: "After School", points: 20, skillTag: "Learning", requiresPhoto: false },
+    { title: "Avoid screen time", category: "After School", points: 15, skillTag: "Discipline", requiresPhoto: false },
+    { title: "Dinner with family", category: "Night", points: 10, skillTag: "Manners", requiresPhoto: false },
+    { title: "Brush teeth", category: "Night", points: 10, skillTag: "Hygiene", requiresPhoto: true },
+    { title: "Iron uniform", category: "Night", points: 20, skillTag: "Self-reliance", requiresPhoto: true },
+    { title: "Make next day plan", category: "Night", points: 10, skillTag: "Time management", requiresPhoto: false },
+    { title: "Pray before sleep", category: "Night", points: 10, skillTag: "Calmness", requiresPhoto: false },
+    { title: "Sleep before 10 PM", category: "Night", points: 15, skillTag: "Health", requiresPhoto: false }
+  ];
+
+  const tasksToCreate = [];
+  for (const child of children) {
+    for (const stock of stockTasks) {
+      tasksToCreate.push({
+        ...stock,
+        familyId,
+        createdBy,
+        assignedTo: child.id,
+        description: `Routine task for ${stock.category}`,
+      });
+    }
+  }
+
+  const createdTasks = await Task.insertMany(tasksToCreate);
+
+  await Activity.create({
+    familyId,
+    actorId: createdBy,
+    type: 'task_created',
+    message: `Reset and seeded ${createdTasks.length} routine tasks for the family.`,
+  });
+
+  return createdTasks;
 }
 
 async function updateStreak(userId: string) {

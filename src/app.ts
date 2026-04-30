@@ -13,6 +13,7 @@ import leaderboardRoutes from './routes/leaderboard.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import gameRoutes from './routes/game.routes.js';
 import activityRoutes from './routes/activity.routes.js';
+import shopRoutes from './routes/shop.routes.js';
 import { swaggerSpec } from './docs/swagger.js';
 import { errorMiddleware, notFoundMiddleware } from './middlewares/error.middleware.js';
 import { env } from './config/env.js';
@@ -45,6 +46,7 @@ app.use('/api/v1/leaderboard', leaderboardRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/games', gameRoutes);
 app.use('/api/v1/activity', activityRoutes);
+app.use('/api/v1/shop', shopRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

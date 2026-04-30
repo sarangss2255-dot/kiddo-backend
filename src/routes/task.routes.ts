@@ -10,6 +10,7 @@ const router = Router();
 router.use(authenticate);
 router.get('/', taskController.listTasks);
 router.post('/', authorize(ROLES.PARENT, ROLES.ADMIN), validate(taskCreateSchema), taskController.createTask);
+router.post('/seed-stock', authorize(ROLES.PARENT, ROLES.ADMIN), taskController.seedStockTasks);
 router.patch(
   '/:taskId',
   authorize(ROLES.PARENT, ROLES.ADMIN, ROLES.CHILD),
