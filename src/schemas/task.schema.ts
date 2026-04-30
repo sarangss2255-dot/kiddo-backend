@@ -8,6 +8,8 @@ export const taskCreateSchema = z.object({
     category: z.string().optional(),
     points: z.number().int().min(0),
     dueDate: z.string().datetime().optional(),
+    skillTag: z.string().optional(),
+    requiresPhoto: z.boolean().optional(),
     rewardUnlockThreshold: z.number().int().min(0).optional(),
   }),
 });
@@ -21,5 +23,7 @@ export const taskUpdateSchema = z.object({
     points: z.number().int().min(0).optional(),
     status: z.enum(['todo', 'in_progress', 'completed', 'approved']).optional(),
     dueDate: z.string().datetime().nullable().optional(),
+    skillTag: z.string().optional(),
+    requiresPhoto: z.boolean().optional(),
   }),
 });

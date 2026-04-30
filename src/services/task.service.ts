@@ -23,6 +23,8 @@ export async function createTask(
     category?: string;
     points: number;
     dueDate?: string;
+    skillTag?: string;
+    requiresPhoto?: boolean;
     rewardUnlockThreshold?: number;
   },
 ) {
@@ -34,6 +36,8 @@ export async function createTask(
     description: input.description ?? '',
     category: input.category ?? 'General',
     points: input.points,
+    skillTag: input.skillTag ?? '',
+    requiresPhoto: input.requiresPhoto ?? false,
     dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
     rewardUnlockThreshold: input.rewardUnlockThreshold ?? 0,
   });
