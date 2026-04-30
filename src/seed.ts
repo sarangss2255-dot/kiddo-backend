@@ -23,9 +23,10 @@ interface SeedData {
   }>;
   tasks: Array<{
     title: string;
-    description: string;
     category: string;
     points: number;
+    skillTag: string;
+    requiresPhoto: boolean;
   }>;
   rewards: Array<{
     title: string;
@@ -58,54 +59,35 @@ const seedData: SeedData = {
     },
   ],
   tasks: [
-    {
-      title: 'Make your bed',
-      description: 'Straighten the sheets and arrange pillows neatly',
-      category: 'Chores',
-      points: 5,
-    },
-    {
-      title: 'Clean your room',
-      description: 'Pick up toys, organize bookshelf, vacuum floor',
-      category: 'Chores',
-      points: 15,
-    },
-    {
-      title: 'Do the dishes',
-      description: 'Load and unload the dishwasher',
-      category: 'Chores',
-      points: 10,
-    },
-    {
-      title: 'Walk the dog',
-      description: 'Take the dog around the block',
-      category: 'Chores',
-      points: 10,
-    },
-    {
-      title: 'Read for 20 minutes',
-      description: 'Read a book of your choice',
-      category: 'Learning',
-      points: 10,
-    },
-    {
-      title: 'Practice piano',
-      description: 'Practice piano for 15 minutes',
-      category: 'Learning',
-      points: 10,
-    },
-    {
-      title: 'Do homework',
-      description: 'Complete all homework assignments',
-      category: 'Learning',
-      points: 15,
-    },
-    {
-      title: 'Exercise for 30 minutes',
-      description: 'Do some physical activity',
-      category: 'Health',
-      points: 10,
-    },
+    { title: "Wake up on time", category: "Morning", points: 10, skillTag: "Discipline", requiresPhoto: false },
+    { title: "Silent Prayer", category: "Morning", points: 5, skillTag: "Mindfulness", requiresPhoto: false },
+    { title: "Smile in the mirror", category: "Morning", points: 5, skillTag: "Self-confidence", requiresPhoto: false },
+    { title: "Make your bed", category: "Morning", points: 15, skillTag: "Responsibility", requiresPhoto: true },
+    { title: "Wear uniform neatly", category: "Morning", points: 10, skillTag: "Self-care", requiresPhoto: true },
+    { title: "Personal hygiene", category: "Morning", points: 10, skillTag: "Hygiene", requiresPhoto: false },
+    { title: "Drink water", category: "Morning", points: 5, skillTag: "Health", requiresPhoto: false },
+    { title: "Exercise (10-20 min)", category: "Morning", points: 20, skillTag: "Fitness", requiresPhoto: false },
+    { title: "Prepare school bag", category: "Morning", points: 10, skillTag: "Organization", requiresPhoto: true },
+    { title: "Greet teachers", category: "School", points: 10, skillTag: "Respect", requiresPhoto: false },
+    { title: "Maintain discipline", category: "School", points: 10, skillTag: "Discipline", requiresPhoto: false },
+    { title: "Help classmates", category: "School", points: 15, skillTag: "Empathy", requiresPhoto: false },
+    { title: "No arguing", category: "School", points: 15, skillTag: "Emotional control", requiresPhoto: false },
+    { title: "Keep classroom clean", category: "School", points: 15, skillTag: "Responsibility", requiresPhoto: false },
+    { title: "Participate in class", category: "School", points: 15, skillTag: "Confidence", requiresPhoto: false },
+    { title: "Wash hands", category: "After School", points: 10, skillTag: "Hygiene", requiresPhoto: false },
+    { title: "Fold uniform", category: "After School", points: 15, skillTag: "Responsibility", requiresPhoto: true },
+    { title: "Help parents", category: "After School", points: 20, skillTag: "Responsibility", requiresPhoto: false },
+    { title: "Revise lessons", category: "After School", points: 20, skillTag: "Learning", requiresPhoto: false },
+    { title: "Organize desk", category: "After School", points: 15, skillTag: "Organization", requiresPhoto: true },
+    { title: "Complete homework", category: "After School", points: 30, skillTag: "Self-learning", requiresPhoto: true },
+    { title: "Read for 20 mins", category: "After School", points: 20, skillTag: "Learning", requiresPhoto: false },
+    { title: "Avoid screen time", category: "After School", points: 15, skillTag: "Discipline", requiresPhoto: false },
+    { title: "Dinner with family", category: "Night", points: 10, skillTag: "Manners", requiresPhoto: false },
+    { title: "Brush teeth", category: "Night", points: 10, skillTag: "Hygiene", requiresPhoto: true },
+    { title: "Iron uniform", category: "Night", points: 20, skillTag: "Self-reliance", requiresPhoto: true },
+    { title: "Make next day plan", category: "Night", points: 10, skillTag: "Time management", requiresPhoto: false },
+    { title: "Pray before sleep", category: "Night", points: 10, skillTag: "Calmness", requiresPhoto: false },
+    { title: "Sleep before 10 PM", category: "Night", points: 15, skillTag: "Health", requiresPhoto: false }
   ],
   rewards: [
     {
@@ -222,9 +204,11 @@ async function seed() {
       createdBy: parentResult.insertedId,
       assignedTo: childIds[i % childIds.length],
       title: task.title,
-      description: task.description,
+      description: `Routine task for ${task.category}`,
       category: task.category,
       points: task.points,
+      skillTag: task.skillTag,
+      requiresPhoto: task.requiresPhoto,
       status: 'todo',
       createdAt: new Date(),
       updatedAt: new Date(),
