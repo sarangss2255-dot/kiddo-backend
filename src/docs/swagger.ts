@@ -21,6 +21,8 @@ export const swaggerSpec = swaggerJSDoc({
       { name: 'Admin', description: 'Admin-only moderation endpoints' },
       { name: 'Games', description: 'Game reward claim endpoints' },
       { name: 'Activity', description: 'Family activity feed' },
+      { name: 'Powerups', description: 'Educational power-ups (Focus Timer, Brain Breaks, Knowledge Quests)' },
+      { name: 'Interactions', description: 'High-fives and cheers between family members' },
     ],
     components: {
       securitySchemes: {
@@ -816,6 +818,125 @@ export const swaggerSpec = swaggerJSDoc({
           responses: {
             '200': {
               description: 'Activity feed response',
+            },
+          },
+        },
+      },
+      '/powerups/brain-break/tip': {
+        get: {
+          tags: ['Powerups'],
+          summary: 'Get a random mindfulness tip',
+          responses: {
+            '200': {
+              description: 'Random tip',
+            },
+          },
+        },
+      },
+      '/powerups/brain-break/complete': {
+        post: {
+          tags: ['Powerups'],
+          summary: 'Complete a brain break and earn points',
+          responses: {
+            '200': {
+              description: 'Points awarded',
+            },
+          },
+        },
+      },
+      '/powerups/focus/complete': {
+        post: {
+          tags: ['Powerups'],
+          summary: 'Complete a focus session and earn points',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    durationSeconds: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Points awarded',
+            },
+          },
+        },
+      },
+      '/powerups/knowledge-quest': {
+        get: {
+          tags: ['Powerups'],
+          summary: 'Get a random trivia question',
+          responses: {
+            '200': {
+              description: 'Question data',
+            },
+          },
+        },
+      },
+      '/powerups/knowledge-quest/answer': {
+        post: {
+          tags: ['Powerups'],
+          summary: 'Submit an answer to a knowledge quest',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    questionId: { type: 'number' },
+                    answer: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Result of the answer',
+            },
+          },
+        },
+      },
+      '/interactions': {
+        post: {
+          tags: ['Interactions'],
+          summary: 'Send a high-five or cheer to a family member',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    receiverId: { type: 'string' },
+                    type: { type: 'string', enum: ['high_five', 'cheer', 'well_done'] },
+                    activityId: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            '201': {
+              description: 'Interaction sent',
+            },
+          },
+        },
+      },
+      '/interactions/me': {
+        get: {
+          tags: ['Interactions'],
+          summary: 'Get interactions received by current user',
+          responses: {
+            '200': {
+              description: 'List of interactions',
             },
           },
         },

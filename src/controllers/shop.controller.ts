@@ -97,6 +97,7 @@ export const seedItems = asyncHandler(async (_req: Request, res: Response) => {
     { name: 'Hero Cape', category: 'cape', price: 200, imageUrl: 'cape_hero', assetId: 'cape_hero', rarity: 'epic' },
     { name: 'Tiny Dragon', category: 'pet', price: 1000, imageUrl: 'pet_dragon', assetId: 'pet_dragon', rarity: 'legendary' },
     { name: 'Robot Suit', category: 'suit', price: 750, imageUrl: 'suit_robot', assetId: 'suit_robot', rarity: 'epic' },
+    { name: 'Streak Shield', category: 'utility', price: 150, imageUrl: 'shield_streak', assetId: 'shield_streak', rarity: 'rare', description: 'Protects your streak for 1 missed day.' },
   ];
 
   await ShopItem.deleteMany({});

@@ -216,7 +216,7 @@ export async function seedStockTasks(familyId: string, createdBy: string) {
 }
 
 async function updateStreak(userId: string) {
-  const child = await User.findById(userId);
+  const child = await User.findById(userId).populate('inventory');
   if (!child) return;
 
   const lastCompleted = child.lastCompletedAt;
@@ -229,7 +229,30 @@ async function updateStreak(userId: string) {
   } else {
     const sameDay = lastCompleted.toDateString() === now.toDateString();
     const continued = lastCompleted.toDateString() === yesterday.toDateString();
-    child.streak = sameDay ? child.streak : continued ? child.streak + 1 : 1;
+    
+    if (sameDay) {
+      // Already updated for today
+    } else if (continued) {
+      child.streak += 1;
+    } else {
+      // Missed a day! Check for Streak Shield
+      const shieldIndex = (child.inventory as any[]).findIndex(item => item.name === 'Streak Shield');
+      if (shieldIndex !== -1) {
+        // Shield protected the streak!
+        child.streak += 1;
+        // Consume the shield
+        child.inventory.splice(shieldIndex, 1);
+        
+        await Activity.create({
+          familyId: child.familyId,
+          actorId: child.id,
+          type: 'powerup_completed',
+          message: `Streak Shield activated! Streak preserved at ${child.streak}.`,
+        });
+      } else {
+        child.streak = 1;
+      }
+    }
   }
 
   child.lastCompletedAt = now;
