@@ -179,6 +179,7 @@ export const logBrainBreak = asyncHandler(async (req: Request, res: Response) =>
   if (!user) throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
 
   // Award skill XP (Kindness for mindfulness)
+  if (!user.skillXP) user.skillXP = { intelligence: 0, strength: 0, kindness: 0 };
   user.skillXP.kindness += 20;
   user.xp += 20;
   await user.save();
@@ -191,4 +192,9 @@ export const logBrainBreak = asyncHandler(async (req: Request, res: Response) =>
   });
 
   res.status(StatusCodes.OK).json(user);
+});
+
+export const regenerateChildCode = asyncHandler(async (req: Request, res: Response) => {
+  const child = await authService.regenerateChildCode(getParam(req.params.userId), req.user!.familyId!);
+  res.status(StatusCodes.OK).json(child.toObject());
 });

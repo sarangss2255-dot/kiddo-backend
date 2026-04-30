@@ -87,6 +87,7 @@ export async function updateTask(
       user.xp += xpGain;
       
       // Update Skill Trees
+      if (!user.skillXP) user.skillXP = { intelligence: 0, strength: 0, kindness: 0 };
       const tag = (task.skillTag || '').toLowerCase();
       const cat = (task.category || '').toLowerCase();
       

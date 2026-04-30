@@ -157,8 +157,7 @@ export async function changePassword(userId: string, currentPass: string, newPas
     throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid current password');
   }
 
-  const salt = await bcrypt.genSalt(10);
-  user.passwordHash = await bcrypt.hash(newPass, salt);
+  user.passwordHash = await bcrypt.hash(newPass, 10);
   await user.save();
 }
 

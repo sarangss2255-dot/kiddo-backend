@@ -5,6 +5,7 @@ import { ShopItem } from '../models/shop-item.model.js';
 import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/api-error.js';
 import { Activity } from '../models/activity.model.js';
+import { Types } from 'mongoose';
 
 export const listItems = asyncHandler(async (req: Request, res: Response) => {
   const items = await ShopItem.find({ isAvailable: true }).sort({ price: 1 }).lean();
@@ -25,7 +26,7 @@ export const purchaseItem = asyncHandler(async (req: Request, res: Response) => 
   }
 
   // Check if already owned
-  if (user.inventory.includes(item.id)) {
+  if (user.inventory.includes(item._id as any)) {
     throw new ApiError(StatusCodes.CONFLICT, 'You already own this item');
   }
 
@@ -36,7 +37,7 @@ export const purchaseItem = asyncHandler(async (req: Request, res: Response) => 
 
   // Deduct points and add to inventory
   user.points -= item.price;
-  user.inventory.push(item.id);
+  user.inventory.push(item._id as any);
   await user.save();
 
   await Activity.create({
@@ -65,17 +66,20 @@ export const equipItem = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Check if owned
-  if (!user.inventory.includes(item.id)) {
+  if (!user.inventory.includes(item._id as any)) {
     throw new ApiError(StatusCodes.FORBIDDEN, 'You do not own this item');
   }
 
   // Equip based on category
   const category = item.category as keyof typeof user.equipped;
-  if (user.equipped[category]?.toString() === item.id.toString()) {
+  const currentEquipped = user.equipped ? (user.equipped as any)[category] : null;
+
+  if (currentEquipped?.toString() === item._id.toString()) {
     // Unequip if already equipped
-    (user.equipped as any)[category] = undefined;
+    if (user.equipped) (user.equipped as any)[category] = undefined;
   } else {
-    (user.equipped as any)[category] = item.id;
+    if (!user.equipped) (user as any).equipped = {};
+    (user.equipped as any)[category] = item._id;
   }
 
   await user.save();
