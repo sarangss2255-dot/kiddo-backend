@@ -135,6 +135,10 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
     child.isActive = isActive;
   }
 
+  if (req.body.childLoginCode != null && req.body.childLoginCode.length >= 4) {
+    child.childLoginCode = req.body.childLoginCode.toString().toUpperCase();
+  }
+
   if (typeof req.body?.settings === 'object' && req.body.settings !== null) {
     // Deep merge settings to ensure no data loss
     const currentSettings = child.toObject().settings || {};

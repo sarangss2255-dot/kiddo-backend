@@ -84,8 +84,17 @@ export async function createChild(parentId: string, familyId: string, input: {
   lastName?: string;
   avatar?: string;
   standard: number;
+  childLoginCode?: string;
 }) {
-  const childLoginCode = await generateChildLoginCode();
+  const childLoginCode = input.childLoginCode 
+    ? input.childLoginCode.toString().toUpperCase() 
+    : await generateChildLoginCode();
+
+  // Check if code is already in use
+  const existing = await User.findOne({ childLoginCode });
+  if (existing) {
+    throw new ApiError(StatusCodes.CONFLICT, 'This access code is already in use by another child');
+  }
   const child = await User.create({
     parentId,
     familyId,
