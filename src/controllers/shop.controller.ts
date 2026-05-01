@@ -76,7 +76,7 @@ export const equipItem = asyncHandler(async (req: Request, res: Response) => {
 
   if (currentEquipped?.toString() === item._id.toString()) {
     // Unequip if already equipped
-    if (user.equipped) (user.equipped as any)[category] = undefined;
+    if (user.equipped) (user.equipped as any)[category] = null;
   } else {
     if (!user.equipped) (user as any).equipped = {};
     (user.equipped as any)[category] = item._id;

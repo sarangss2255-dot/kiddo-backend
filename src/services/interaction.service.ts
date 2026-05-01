@@ -22,6 +22,11 @@ export async function sendInteraction(
     activityId,
   });
 
+  // Award points: 2 points for both
+  sender.points += 2;
+  receiver.points += 2;
+  await Promise.all([sender.save(), receiver.save()]);
+
   const messages = {
     high_five: 'sent a high-five ✋',
     cheer: 'cheered for you 📣',
@@ -31,9 +36,14 @@ export async function sendInteraction(
   await Activity.create({
     familyId,
     actorId: senderId,
-    type: 'child_updated', // Reuse an existing enum type or add a new one if possible
+    type: 'social_interaction',
     message: `${sender.firstName} ${messages[type]} to ${receiver.firstName}`,
-    metadata: { interactionId: interaction.id, type, receiverId },
+    metadata: { 
+      interactionId: interaction.id, 
+      type, 
+      receiverId, 
+      pointsEarned: 2 
+    },
   });
 
   return interaction;

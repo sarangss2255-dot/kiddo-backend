@@ -26,6 +26,8 @@ export async function createTask(
     skillTag?: string;
     requiresPhoto?: boolean;
     rewardUnlockThreshold?: number;
+    isRecurring?: boolean;
+    recurrenceInterval?: 'daily' | 'weekly' | 'monthly';
   },
 ) {
   const task = await Task.create({
@@ -40,6 +42,8 @@ export async function createTask(
     requiresPhoto: input.requiresPhoto ?? false,
     dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
     rewardUnlockThreshold: input.rewardUnlockThreshold ?? 0,
+    isRecurring: input.isRecurring ?? false,
+    recurrenceInterval: input.recurrenceInterval ?? 'daily',
   });
 
   await Activity.create({
@@ -103,11 +107,11 @@ export async function updateTask(
         user.skillXP.kindness += xpGain;
       }
       
-      // Level up check: level * level * 100
-      const xpNeeded = user.level * user.level * 100;
-      if (user.xp >= xpNeeded) {
+      // Level up check
+      let xpNeeded = user.level * user.level * 100;
+      while (user.xp >= xpNeeded) {
         user.level += 1;
-        // Optional: Trigger level up event/notification
+        xpNeeded = user.level * user.level * 100;
       }
       await user.save();
     }
@@ -119,6 +123,35 @@ export async function updateTask(
       message: `Approved task "${task.title}" (+${task.points} pts, +${xpGain} XP)`,
       metadata: { taskId: task.id },
     });
+
+    // Handle Recurrence
+    if (task.isRecurring) {
+      const nextDueDate = new Date(task.dueDate || new Date());
+      if (task.recurrenceInterval === 'weekly') {
+        nextDueDate.setDate(nextDueDate.getDate() + 7);
+      } else if (task.recurrenceInterval === 'monthly') {
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+      } else {
+        // Default to daily
+        nextDueDate.setDate(nextDueDate.getDate() + 1);
+      }
+
+      await Task.create({
+        familyId: task.familyId,
+        createdBy: task.createdBy,
+        assignedTo: task.assignedTo,
+        title: task.title,
+        description: task.description,
+        category: task.category,
+        points: task.points,
+        skillTag: task.skillTag,
+        requiresPhoto: task.requiresPhoto,
+        isRecurring: true,
+        recurrenceInterval: task.recurrenceInterval,
+        dueDate: nextDueDate,
+        status: 'todo',
+      });
+    }
   }
 
   Object.assign(task, input, {

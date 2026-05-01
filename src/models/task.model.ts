@@ -21,6 +21,12 @@ const taskSchema = new Schema(
     dueDate: { type: Date },
     completedAt: { type: Date },
     approvedAt: { type: Date },
+    isRecurring: { type: Boolean, default: false },
+    recurrenceInterval: { 
+      type: String, 
+      enum: ['daily', 'weekly', 'monthly'], 
+      default: 'daily' 
+    },
   },
   { timestamps: true },
 );

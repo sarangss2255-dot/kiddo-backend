@@ -6,7 +6,7 @@ const shopItemSchema = new Schema(
     description: { type: String, trim: true },
     category: { 
       type: String, 
-      enum: ['hat', 'cape', 'glasses', 'pet', 'suit', 'background'], 
+      enum: ['hat', 'cape', 'glasses', 'pet', 'suit', 'background', 'utility'], 
       required: true 
     },
     price: { type: Number, required: true, min: 0 },

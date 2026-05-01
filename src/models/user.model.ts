@@ -55,6 +55,7 @@ const userSchema = new Schema(
       whatsappSummary: { type: Boolean, default: false },
       emailSummary: { type: Boolean, default: true },
       language: { type: String, default: 'en-IN' },
+      currentTheme: { type: String, default: 'space' },
     },
     inventory: [{ type: Schema.Types.ObjectId, ref: 'ShopItem' }],
     equipped: {

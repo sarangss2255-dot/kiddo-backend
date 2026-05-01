@@ -16,6 +16,8 @@ import activityRoutes from './routes/activity.routes.js';
 import shopRoutes from './routes/shop.routes.js';
 import powerupRoutes from './routes/powerup.routes.js';
 import interactionRoutes from './routes/interaction.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
+import moodRoutes from './routes/mood.routes.js';
 import { swaggerSpec } from './docs/swagger.js';
 import { errorMiddleware, notFoundMiddleware } from './middlewares/error.middleware.js';
 import { env } from './config/env.js';
@@ -51,6 +53,8 @@ app.use('/api/v1/activity', activityRoutes);
 app.use('/api/v1/shop', shopRoutes);
 app.use('/api/v1/powerups', powerupRoutes);
 app.use('/api/v1/interactions', interactionRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/moods', moodRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

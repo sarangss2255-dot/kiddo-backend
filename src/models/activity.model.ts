@@ -17,6 +17,7 @@ const activitySchema = new Schema(
         'game_reward_claimed',
         'child_added',
         'child_updated',
+        'social_interaction',
       ],
       required: true,
     },

@@ -28,3 +28,44 @@ export async function getAdminAnalytics() {
     recentActivity: activity,
   };
 }
+
+export async function getFamilyAnalytics(familyId: string) {
+  const [users, tasks, recentActivity] = await Promise.all([
+    User.find({ familyId }).select('firstName role points xp level skillXP').lean(),
+    Task.find({ familyId }).lean(),
+    Activity.find({ familyId }).sort({ createdAt: -1 }).limit(15).lean(),
+  ]);
+
+  const children = users.filter(u => u.role === 'child');
+  const completedTasks = tasks.filter(t => t.status === 'approved' || t.status === 'completed');
+  
+  // Category distribution
+  const categories: Record<string, number> = {};
+  tasks.forEach(t => {
+    categories[t.category] = (categories[t.category] || 0) + 1;
+  });
+
+  // Completion rate
+  const completionRate = tasks.length > 0 
+    ? (completedTasks.length / tasks.length) * 100 
+    : 0;
+
+  return {
+    summary: {
+      totalChildren: children.length,
+      totalTasks: tasks.length,
+      completedTasks: completedTasks.length,
+      completionRate: Math.round(completionRate),
+    },
+    children: children.map(c => ({
+      id: (c as any)._id,
+      name: c.firstName,
+      level: c.level,
+      points: c.points,
+      xp: c.xp,
+      skills: c.skillXP,
+    })),
+    categories,
+    recentActivity,
+  };
+}
