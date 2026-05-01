@@ -135,6 +135,18 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
     child.isActive = isActive;
   }
 
+  if (typeof req.body?.settings === 'object' && req.body.settings !== null) {
+    // Deep merge settings to ensure no data loss
+    const currentSettings = child.settings || {};
+    const newSettings = req.body.settings;
+    
+    child.settings = {
+      ...(typeof currentSettings.toObject === 'function' ? currentSettings.toObject() : currentSettings),
+      ...newSettings
+    };
+    child.markModified('settings');
+  }
+
   await child.save();
 
   await Activity.create({
