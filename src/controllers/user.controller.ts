@@ -137,13 +137,8 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
 
   if (typeof req.body?.settings === 'object' && req.body.settings !== null) {
     // Deep merge settings to ensure no data loss
-    const currentSettings = child.settings || {};
-    const newSettings = req.body.settings;
-    
-    child.settings = {
-      ...(typeof currentSettings.toObject === 'function' ? currentSettings.toObject() : currentSettings),
-      ...newSettings
-    };
+    const currentSettings = child.toObject().settings || {};
+    child.settings = { ...currentSettings, ...req.body.settings };
     child.markModified('settings');
   }
 
