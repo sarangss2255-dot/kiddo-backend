@@ -33,6 +33,7 @@ export const childCreateSchema = z.object({
     lastName: z.string().optional(),
     avatar: z.string().optional(),
     standard: z.number().int().min(1).max(12),
+    school: z.string().optional(),
   }),
 });
 

@@ -84,6 +84,7 @@ export async function createChild(parentId: string, familyId: string, input: {
   lastName?: string;
   avatar?: string;
   standard: number;
+  school?: string;
   childLoginCode?: string;
 }) {
   const childLoginCode = input.childLoginCode 
@@ -102,6 +103,7 @@ export async function createChild(parentId: string, familyId: string, input: {
     firstName: input.firstName,
     lastName: input.lastName ?? '',
     standard: input.standard,
+    school: input.school ?? '',
     avatar: input.avatar ?? 'space-ranger',
     childLoginCode,
   });
@@ -299,6 +301,7 @@ function buildAuthPayload(userId: string, role: Role, familyId: string | undefin
   mathGamesPlayed?: number;
   patternWins?: number;
   patternGamesPlayed?: number;
+  school?: string | null;
 }) {
   const accessToken = createAccessToken({
     sub: userId,
@@ -326,6 +329,7 @@ function buildAuthPayload(userId: string, role: Role, familyId: string | undefin
       childLoginCode: user.childLoginCode ?? undefined,
       avatar: user.avatar ?? undefined,
       standard: user.standard ?? 1,
+      school: user.school ?? undefined,
       points: user.points ?? 0,
       streak: user.streak ?? 0,
       chessWins: user.chessWins ?? 0,

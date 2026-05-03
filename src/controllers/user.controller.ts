@@ -38,6 +38,9 @@ export const updateMe = asyncHandler(async (req: Request, res: Response) => {
   if (typeof req.body?.avatar === 'string' && req.body.avatar.trim().length > 0) {
     update.avatar = req.body.avatar.trim();
   }
+  if (typeof req.body?.school === 'string') {
+    update.school = req.body.school.trim();
+  }
   if (typeof req.body?.notificationToken === 'string' && req.body.notificationToken.trim().length > 0) {
     update.notificationToken = req.body.notificationToken.trim();
   }
@@ -110,6 +113,7 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
   const standard = typeof req.body?.standard === 'number' && Number.isInteger(req.body.standard)
     ? req.body.standard
     : undefined;
+  const school = typeof req.body?.school === 'string' ? req.body.school.trim() : undefined;
 
   if (firstName != null && firstName.length > 0) {
     child.firstName = firstName;
@@ -117,6 +121,10 @@ export const updateChild = asyncHandler(async (req: Request, res: Response) => {
 
   if (lastName != null) {
     child.lastName = lastName;
+  }
+
+  if (school != null) {
+    child.school = school;
   }
 
   if (username != null && username.length > 0) {
