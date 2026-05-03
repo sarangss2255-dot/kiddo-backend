@@ -60,7 +60,7 @@ export async function createTask(
     input.assignedTo,
     'New Quest Assigned! 🚀',
     `You have a new quest: "${task.title}". Tap to view and earn ${task.points} points!`
-  ).ignore();
+  ).catch(() => {});
 
   return task;
 }
@@ -97,7 +97,7 @@ export async function updateTask(
       familyId,
       'Quest Completed! 🛡️',
       `A child has completed the quest: "${task.title}". Tap to review and approve it!`
-    ).ignore();
+    ).catch(() => {});
   }
 
   if (input.status === 'approved') {
@@ -144,7 +144,7 @@ export async function updateTask(
       String(task.assignedTo),
       'Quest Approved! 🌟',
       `Your quest "${task.title}" was approved! You earned ${task.points} points and ${task.points * 10} XP. Keep it up!`
-    ).ignore();
+    ).catch(() => {});
 
     // Handle Recurrence
     if (task.isRecurring) {
