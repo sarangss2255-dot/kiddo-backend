@@ -3,6 +3,7 @@ import { Activity } from '../models/activity.model.js';
 import { Task } from '../models/task.model.js';
 import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/api-error.js';
+import { NotificationService } from './notification.service.js';
 
 export async function listTasks(familyId: string, userId?: string, role?: string) {
   const query: Record<string, unknown> = { familyId };
@@ -54,6 +55,13 @@ export async function createTask(
     metadata: { taskId: task.id },
   });
 
+  // Send Push Notification to Child
+  NotificationService.sendToUser(
+    input.assignedTo,
+    'New Quest Assigned! 🚀',
+    `You have a new quest: "${task.title}". Tap to view and earn ${task.points} points!`
+  ).ignore();
+
   return task;
 }
 
@@ -83,6 +91,13 @@ export async function updateTask(
       message: `Completed task "${task.title}"`,
       metadata: { taskId: task.id },
     });
+
+    // Send Push Notification to Parents
+    NotificationService.sendToFamilyParents(
+      familyId,
+      'Quest Completed! 🛡️',
+      `A child has completed the quest: "${task.title}". Tap to review and approve it!`
+    ).ignore();
   }
 
   if (input.status === 'approved') {
@@ -123,6 +138,13 @@ export async function updateTask(
       message: `Approved task "${task.title}" (+${task.points} pts, +${xpGain} XP)`,
       metadata: { taskId: task.id },
     });
+
+    // Send Push Notification to Child
+    NotificationService.sendToUser(
+      String(task.assignedTo),
+      'Quest Approved! 🌟',
+      `Your quest "${task.title}" was approved! You earned ${task.points} points and ${task.points * 10} XP. Keep it up!`
+    ).ignore();
 
     // Handle Recurrence
     if (task.isRecurring) {
