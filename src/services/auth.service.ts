@@ -2,12 +2,15 @@ import bcrypt from 'bcryptjs';
 import { StatusCodes } from 'http-status-codes';
 import { nanoid } from 'nanoid';
 import { ROLES, type Role } from '../constants/roles.js';
+import { env } from '../config/env.js';
 import { firebaseAuth } from '../config/firebase-admin.js';
 import { Activity } from '../models/activity.model.js';
 import { Family } from '../models/family.model.js';
 import { User } from '../models/user.model.js';
 import { ApiError } from '../utils/api-error.js';
 import { createAccessToken, createRefreshToken } from './token.service.js';
+
+const DEFAULT_ADMIN_EMAIL = 'sarangblazicon@gmail.com';
 
 export async function registerParent(input: {
   firstName: string;
@@ -190,11 +193,26 @@ export async function firebaseLogin(input: {
     $or: [{ firebaseUid }, { email }],
   });
 
-  if (user && user.role !== ROLES.PARENT) {
-    throw new ApiError(StatusCodes.FORBIDDEN, 'Firebase login is only available for parent accounts');
+  const firebaseLoginRoles: Role[] = [ROLES.ADMIN, ROLES.PARENT];
+  if (user && !firebaseLoginRoles.includes(user.role as Role)) {
+    throw new ApiError(StatusCodes.FORBIDDEN, 'Firebase login is only available for parent and admin accounts');
   }
 
   if (!user) {
+    if (isAdminEmail(email)) {
+      user = await User.create({
+        role: ROLES.ADMIN,
+        email,
+        firebaseUid,
+        firstName: decoded.name?.trim() || 'Admin',
+        lastName: '',
+        avatar: 'admin',
+      });
+
+      await firebaseAuth.setCustomUserClaims(firebaseUid, { role: ROLES.ADMIN });
+      return buildAuthPayload(user.id, ROLES.ADMIN, undefined, user);
+    }
+
     if (!input.autoCreate && !input.familyName) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'No parent account found for this Firebase user');
     }
@@ -219,7 +237,11 @@ export async function firebaseLogin(input: {
     await user.save();
   }
 
-  return buildAuthPayload(user.id, ROLES.PARENT, user.familyId ? String(user.familyId) : undefined, user);
+  if (user.role === ROLES.ADMIN) {
+    await firebaseAuth.setCustomUserClaims(firebaseUid, { role: ROLES.ADMIN });
+  }
+
+  return buildAuthPayload(user.id, user.role as Role, user.familyId ? String(user.familyId) : undefined, user);
 }
 
 async function registerParentWithFirebase(input: {
@@ -343,4 +365,16 @@ function buildAuthPayload(userId: string, role: Role, familyId: string | undefin
       lastChessRewardAt: user.lastChessRewardAt ?? undefined,
     },
   };
+}
+
+function isAdminEmail(email: string) {
+  const configuredAdminEmails = [
+    DEFAULT_ADMIN_EMAIL,
+    process.env.ADMIN_EMAIL,
+    env.NODE_ENV === 'development' ? 'admin@kiddo.local' : undefined,
+  ]
+    .filter(Boolean)
+    .map((value) => value!.trim().toLowerCase());
+
+  return configuredAdminEmails.includes(email.trim().toLowerCase());
 }
