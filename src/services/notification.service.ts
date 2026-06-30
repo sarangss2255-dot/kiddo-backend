@@ -56,4 +56,29 @@ export class NotificationService {
       console.error('Error sending multicast push notification:', error);
     }
   }
+
+  /**
+   * Send a push notification to a teacher by teacher ID
+   */
+  static async sendToTeacher(teacherId: string, title: string, body: string, data?: Record<string, string>) {
+    try {
+      const { Teacher } = await import('../models/teacher.model.js');
+      const teacher = await Teacher.findById(teacherId).lean();
+      if (!teacher) return;
+      const user = await User.findOne({ email: teacher.email }).select('notificationToken').lean();
+      if (!user || !user.notificationToken) return;
+
+      const message = {
+        notification: { title, body },
+        data: data || {},
+        token: user.notificationToken,
+      };
+
+      const response = await firebaseAdmin.messaging().send(message);
+      console.log('Successfully sent teacher notification:', response);
+      return response;
+    } catch (error) {
+      console.error('Error sending teacher notification:', error);
+    }
+  }
 }

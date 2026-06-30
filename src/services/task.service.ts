@@ -6,9 +6,13 @@ import { ApiError } from '../utils/api-error.js';
 import { NotificationService } from './notification.service.js';
 
 export async function listTasks(familyId: string, userId?: string, role?: string) {
-  const query: Record<string, unknown> = { familyId };
+  let query: Record<string, unknown> = { familyId };
+
   if (role === 'child') {
-    query.assignedTo = userId;
+    query = {
+      assignedTo: userId,
+      $or: [{ familyId }, { familyId: 'teacher' }],
+    };
   }
 
   return Task.find(query).sort({ createdAt: -1 }).lean();
@@ -92,12 +96,20 @@ export async function updateTask(
       metadata: { taskId: task.id },
     });
 
-    // Send Push Notification to Parents
-    NotificationService.sendToFamilyParents(
-      familyId,
-      'Quest Completed! 🛡️',
-      `A child has completed the quest: "${task.title}". Tap to review and approve it!`
-    ).catch(() => {});
+    // Send Push Notification to Parents or Teacher
+    if (familyId === 'teacher' && task.createdBy) {
+      NotificationService.sendToTeacher(
+        String(task.createdBy),
+        'Task Completed! ✅',
+        `A student completed: "${task.title}". Tap to review.`
+      ).catch(() => {});
+    } else {
+      NotificationService.sendToFamilyParents(
+        familyId,
+        'Quest Completed! 🛡️',
+        `A child has completed the quest: "${task.title}". Tap to review and approve it!`
+      ).catch(() => {});
+    }
   }
 
   if (input.status === 'approved') {

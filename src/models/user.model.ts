@@ -43,6 +43,9 @@ const userSchema = new Schema(
     lastCompletedAt: { type: Date },
     notificationToken: { type: String },
     isActive: { type: Boolean, default: true },
+    schoolName: { type: String, trim: true, default: '' },
+    teacherId: { type: Schema.Types.ObjectId, ref: 'Teacher' },
+    classId: { type: Schema.Types.ObjectId, ref: 'Class' },
     gender: { type: String, enum: ['male', 'female', 'other'], default: 'male' },
     settings: {
       animationsEnabled: { type: Boolean, default: true },

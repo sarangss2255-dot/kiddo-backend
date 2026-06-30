@@ -2,9 +2,11 @@ import { Activity } from '../models/activity.model.js';
 import { Family } from '../models/family.model.js';
 import { Task } from '../models/task.model.js';
 import { User } from '../models/user.model.js';
+import { Teacher } from '../models/teacher.model.js';
+import { Class } from '../models/class.model.js';
 
 export async function getAdminAnalytics() {
-  const [parents, children, families, tasks, completedToday, activity] = await Promise.all([
+  const [parents, children, families, tasks, completedToday, activity, teachers, schoolClasses] = await Promise.all([
     User.countDocuments({ role: 'parent' }),
     User.countDocuments({ role: 'child' }),
     Family.countDocuments(),
@@ -15,6 +17,8 @@ export async function getAdminAnalytics() {
       },
     }),
     Activity.find().sort({ createdAt: -1 }).limit(10).lean(),
+    Teacher.countDocuments(),
+    Class.countDocuments(),
   ]);
 
   return {
@@ -24,6 +28,8 @@ export async function getAdminAnalytics() {
       families,
       tasks,
       completedToday,
+      teachers,
+      schoolClasses,
     },
     recentActivity: activity,
   };
