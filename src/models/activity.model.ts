@@ -18,6 +18,8 @@ const activitySchema = new Schema(
         'child_added',
         'child_updated',
         'social_interaction',
+        'reward_adjusted',
+        'item_purchased',
       ],
       required: true,
     },
