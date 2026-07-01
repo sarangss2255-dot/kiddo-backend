@@ -61,6 +61,19 @@ const userSchema = new Schema(
       language: { type: String, default: 'en-IN' },
       currentTheme: { type: String, default: 'space' },
     },
+    weeklySchedule: {
+      monday: { type: Boolean, default: true },
+      tuesday: { type: Boolean, default: true },
+      wednesday: { type: Boolean, default: true },
+      thursday: { type: Boolean, default: true },
+      friday: { type: Boolean, default: true },
+      saturday: { type: Boolean, default: false },
+      sunday: { type: Boolean, default: false },
+    },
+    wakeUpSettings: {
+      targetTime: { type: String, default: '06:30' },
+      mandatory: { type: Boolean, default: true },
+    },
     inventory: [{ type: Schema.Types.ObjectId, ref: 'ShopItem' }],
     equipped: {
       hat: { type: Schema.Types.ObjectId, ref: 'ShopItem' },

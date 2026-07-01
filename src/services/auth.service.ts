@@ -109,6 +109,19 @@ export async function createChild(parentId: string, familyId: string, input: {
     school: input.school ?? '',
     avatar: input.avatar ?? 'space-ranger',
     childLoginCode,
+    weeklySchedule: {
+      monday: true,
+      tuesday: true,
+      wednesday: true,
+      thursday: true,
+      friday: true,
+      saturday: false,
+      sunday: false,
+    },
+    wakeUpSettings: {
+      targetTime: '06:30',
+      mandatory: true,
+    },
   });
 
   await Activity.create({
